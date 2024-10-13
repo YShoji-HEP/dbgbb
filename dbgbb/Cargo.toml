@@ -1,0 +1,28 @@
+[package]
+name = "dbgbb"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A framework for analyzing debugging data in a notebook"
+repository = "https://github.com/YShoji-HEP/dbgbb"
+readme = "README.md"
+keywords = ["data_structures", "binary", "object_storage", "debugging"]
+categories = ["visualization", "encoding", "development-tools::debugging", "development-tools::testing"]
+
+[dependencies]
+array-object = "0.1.0"
+bulletin-board-common = "0.1.0"
+ciborium = "=0.2.2"
+serde = "1.0.209"
+serde_bytes = "0.11.15"
+num-complex = "0.4.6"
+varint-rs = "2.2.0"
+ndarray_15 = { package = "ndarray", version = "0.15.6", optional = true }
+ndarray_16 = { package = "ndarray", version = "0.16.1", optional = true }
+
+[features]
+default = []
+unix = []
+ndarray = []
+ndarray_15 = ["ndarray", "dep:ndarray_15", "array-object/ndarray_15"]
+ndarray_16 = ["ndarray", "dep:ndarray_16", "array-object/ndarray_16"]
