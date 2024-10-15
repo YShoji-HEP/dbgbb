@@ -3,6 +3,9 @@ use std::net::TcpStream as TcpOrUnixStream;
 #[cfg(feature = "unix")]
 use std::os::unix::net::UnixStream as TcpOrUnixStream;
 
+use crate::Operation;
+use array_object::{ArrayObject, Pack};
+use serde_bytes::ByteBuf;
 use std::io::{self, Cursor};
 use std::sync::mpsc::{self, Sender};
 use std::sync::{LazyLock, Mutex};
@@ -10,7 +13,8 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 /// Utility for sending data.
-pub static SENDER: LazyLock<Mutex<BufferedSender>> = LazyLock::new(|| Mutex::new(BufferedSender::new()));
+pub static SENDER: LazyLock<Mutex<BufferedSender>> =
+    LazyLock::new(|| Mutex::new(BufferedSender::new()));
 
 /// Buffer for sending the data over TCP.
 pub struct Buffer {}
@@ -46,7 +50,12 @@ impl Drop for Buffer {
 
 pub struct BufferedSender {
     addr: String,
-    handle: Option<(JoinHandle<()>, Sender<Option<Cursor<Vec<u8>>>>)>,
+    handle: Option<(JoinHandle<()>, Sender<SenderControl>)>,
+}
+
+pub enum SenderControl {
+    Post((String, String, ArrayObject)),
+    Shutdown,
 }
 
 impl BufferedSender {
@@ -61,19 +70,20 @@ impl BufferedSender {
         &self.addr
     }
     fn start(&mut self, timeout: u64, interval: u64) {
-        let (tx, rx) = mpsc::channel::<Option<Cursor<Vec<u8>>>>();
+        let (tx, rx) = mpsc::channel::<SenderControl>();
         let addr = self.addr.clone();
         let handle = std::thread::spawn(move || {
             let mut buffer = Cursor::new(vec![]);
             let mut time = Instant::now();
             loop {
-                if let Ok(signal) = rx.recv_timeout(Duration::from_millis(timeout)) {
-                    match signal {
-                        Some(mut data) => {
-                            data.set_position(0);
-                            io::copy(&mut data, &mut buffer).unwrap();
+                if let Ok(ctl) = rx.recv_timeout(Duration::from_millis(timeout)) {
+                    match ctl {
+                        SenderControl::Post((var_name, var_tag, obj)) => {
+                            let data = ByteBuf::from(obj.pack());
+                            ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
+                            ciborium::into_writer(&(var_name, var_tag, data), &mut buffer).unwrap();
                         }
-                        None => {
+                        SenderControl::Shutdown => {
                             if buffer.position() > 0 {
                                 let mut stream = TcpOrUnixStream::connect(&addr).unwrap();
                                 buffer.set_position(0);
@@ -95,16 +105,27 @@ impl BufferedSender {
         });
         self.handle = Some((handle, tx));
     }
-    pub fn send(&self, data: Option<Cursor<Vec<u8>>>) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn post(
+        &self,
+        objs: Vec<(String, String, ArrayObject)>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         match &self.handle {
             Some((_, tx)) => {
-                tx.send(data)?;
+                for obj in objs {
+                    tx.send(SenderControl::Post(obj))?;
+                }
             }
             None => {
-                if let Some(mut data) = data {
+                if !objs.is_empty() {
+                    let mut buffer = Cursor::new(vec![]);
+                    for (var_name, var_tag, obj) in objs {
+                        let data = ByteBuf::from(obj.pack());
+                        ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
+                        ciborium::into_writer(&(var_name, var_tag, data), &mut buffer).unwrap();
+                    }
+                    buffer.set_position(0);
                     let mut stream = TcpOrUnixStream::connect(&self.addr)?;
-                    data.set_position(0);
-                    io::copy(&mut data, &mut stream)?;
+                    io::copy(&mut buffer, &mut stream)?;
                 }
             }
         }
@@ -112,7 +133,7 @@ impl BufferedSender {
     }
     fn join(&mut self) {
         if let Some((handle, tx)) = self.handle.take() {
-            tx.send(None).unwrap();
+            tx.send(SenderControl::Shutdown).unwrap();
             handle.join().unwrap();
         }
     }

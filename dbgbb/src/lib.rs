@@ -1,21 +1,17 @@
 //! # dbgbb!
-//! 
+//!
 mod external;
+mod reader;
 mod rename;
 mod sender;
 
-#[cfg(not(feature = "unix"))]
-pub use std::net::TcpStream as TcpOrUnixStream;
-#[cfg(feature = "unix")]
-pub use std::os::unix::net::UnixStream as TcpOrUnixStream;
-
-pub use array_object::{ArrayObject, Pack, TryConcat, Unpack};
+pub use array_object::{ArrayObject, Pack, TryConcat};
 pub use bulletin_board_common::*;
-pub use ciborium;
+pub use reader::read_bulletin;
 pub use rename::Rename;
 pub use sender::Buffer;
 pub use sender::SENDER;
-pub use serde_bytes;
+
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
@@ -27,24 +23,28 @@ pub static DATA_ACC: LazyLock<Mutex<HashMap<(String, String, String), Vec<ArrayO
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Send the debug data to the server.
+/// Usage:
+/// ```
+/// dbgbb!(a, b, ...);
+/// dbgbb!(every => 3, a, b, ...);
+/// dbgbb!(oneshot => 5, a, b, ...);
+/// ```
 #[macro_export]
 macro_rules! dbgbb {
     ($($x:expr),*) => {{
         let sender = dbgbb::SENDER.lock().unwrap();
         use dbgbb::{Rename, Pack};
-        let mut buffer = std::io::Cursor::new(vec![]);
+        let mut objs = vec![];
         $(
-            dbgbb::ciborium::into_writer(&dbgbb::Operation::Post, &mut buffer).unwrap();
             let var_name = match $x.get_name() {
                 Some(name) => name,
                 None => stringify!($x).to_string(),
             };
             let var_tag = format!("{}:{}:{}", file!(), line!(), column!());
             let obj: dbgbb::ArrayObject = $x.clone().try_into().unwrap();
-            let val = dbgbb::serde_bytes::ByteBuf::from(obj.pack());
-            dbgbb::ciborium::into_writer(&(var_name, var_tag, val), &mut buffer).unwrap();
+            objs.push((var_name, var_tag, obj));
         )*
-        sender.send(Some(buffer)).unwrap();
+        sender.post(objs).unwrap();
     }};
     (every => $n:literal, $($x:expr),*) => {{
         let mut map = dbgbb::COUNTER.lock().unwrap();
@@ -65,6 +65,15 @@ macro_rules! dbgbb {
 }
 
 /// Accumulate and send the debug data to the server.
+/// Usage:
+/// ```
+/// for _ in 0..10 {
+///     dbgbb_acc!(label => "i", a, b, ...);
+///     dbgbb_acc!(label => "j", every => 3, a, b, ...);
+/// }
+/// dbgbb_acc!("i" => post);
+/// dbgbb_acc!("j" => post);
+/// ```
 #[macro_export]
 macro_rules! dbgbb_acc {
     (label => $label:literal, $($x:expr),*) => {{
@@ -91,7 +100,7 @@ macro_rules! dbgbb_acc {
     }};
     ($label:literal => post) => {{
         use dbgbb::{Pack, TryConcat};
-        let mut buffer = std::io::Cursor::new(vec![]);
+        let mut objs = vec![];
         let sender = dbgbb::SENDER.lock().unwrap();
         let mut map = dbgbb::DATA_ACC.lock().unwrap();
         let keys: Vec<_> = map.keys()
@@ -100,73 +109,35 @@ macro_rules! dbgbb_acc {
             .collect();
         for key in keys {
             let obj = map.remove(&key).unwrap().try_concat().unwrap();
-            dbgbb::ciborium::into_writer(&dbgbb::Operation::Post, &mut buffer).unwrap();
-            let val = dbgbb::serde_bytes::ByteBuf::from(obj.pack());
-            dbgbb::ciborium::into_writer(&(key.1, key.2, val), &mut buffer).unwrap();
+            objs.push((key.1, key.2, obj));
         }
-        sender.send(Some(buffer)).unwrap();
+        sender.post(objs).unwrap();
     }};
 }
 
 /// Read data from the server.
+/// Usage:
+/// ```
+/// let a: Vec<u32> = dbgbb_read!("a");
+/// let b: Vec<f64> = dbgbb_read!("b", "tag1");
+/// let c: i64 = dbgbb_read!("c", "tag2", 0);
+/// ```
 #[macro_export]
 macro_rules! dbgbb_read {
     ($var_name:literal, $var_tag:literal, $revision:literal) => {{
-        use dbgbb::Unpack;
-        let sender = dbgbb::SENDER.lock().unwrap();
-        let addr = sender.get_addr();
-        let mut stream = dbgbb::TcpOrUnixStream::connect(&addr).unwrap();
-        let mut buffer = std::io::Cursor::new(vec![]);
-        dbgbb::ciborium::into_writer(&dbgbb::Operation::Read, &mut buffer).unwrap();
-        dbgbb::ciborium::into_writer(
-            &(
-                $var_name.to_string(),
-                Some($var_tag.to_string()),
-                $revision as u64,
-            ),
-            &mut buffer,
-        )
-        .unwrap();
-        buffer.set_position(0);
-        std::io::copy(&mut buffer, &mut stream).unwrap();
-        let val: serde_bytes::ByteBuf = dbgbb::ciborium::from_reader(&mut stream).unwrap();
-        let obj = dbgbb::ArrayObject::unpack(val.to_vec());
+        let obj = dbgbb::read_bulletin(
+            $var_name.to_string(),
+            Some($var_tag.to_string()),
+            $revision as u64,
+        );
         obj.try_into().unwrap()
     }};
     ($var_name:literal, $var_tag:literal) => {{
-        use dbgbb::Unpack;
-        let sender = dbgbb::SENDER.lock().unwrap();
-        let addr = sender.get_addr();
-        let mut stream = dbgbb::TcpOrUnixStream::connect(&addr).unwrap();
-        let mut buffer = std::io::Cursor::new(vec![]);
-        dbgbb::ciborium::into_writer(&dbgbb::Operation::Read, &mut buffer).unwrap();
-        dbgbb::ciborium::into_writer::<(_, _, Option<u64>), _>(
-            &($var_name.to_string(), Some($var_tag.to_string()), None),
-            &mut buffer,
-        )
-        .unwrap();
-        buffer.set_position(0);
-        std::io::copy(&mut buffer, &mut stream).unwrap();
-        let val: serde_bytes::ByteBuf = dbgbb::ciborium::from_reader(&mut stream).unwrap();
-        let obj = dbgbb::ArrayObject::unpack(val.to_vec());
+        let obj = dbgbb::read_bulletin($var_name.to_string(), Some($var_tag.to_string()), None);
         obj.try_into().unwrap()
     }};
     ($var_name:literal) => {{
-        use dbgbb::Unpack;
-        let sender = dbgbb::SENDER.lock().unwrap();
-        let addr = sender.get_addr();
-        let mut stream = dbgbb::TcpOrUnixStream::connect(&addr).unwrap();
-        let mut buffer = std::io::Cursor::new(vec![]);
-        dbgbb::ciborium::into_writer(&dbgbb::Operation::Read, &mut buffer).unwrap();
-        dbgbb::ciborium::into_writer::<(_, Option<String>, Option<u64>), _>(
-            &($var_name.to_string(), None, None),
-            &mut buffer,
-        )
-        .unwrap();
-        buffer.set_position(0);
-        std::io::copy(&mut buffer, &mut stream).unwrap();
-        let val: serde_bytes::ByteBuf = dbgbb::ciborium::from_reader(&mut stream).unwrap();
-        let obj = dbgbb::ArrayObject::unpack(val.to_vec()).unwrap();
+        let obj = dbgbb::read_bulletin($var_name.to_string(), None, None);
         obj.try_into().unwrap()
     }};
 }
