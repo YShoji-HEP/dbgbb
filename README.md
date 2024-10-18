@@ -1,5 +1,6 @@
 dbgbb
 ===========================
+[![Sponsors](https://img.shields.io/badge/Offer-Coffee-red)](https://github.com/sponsors/YShoji-HEP)
 [![Crates.io](https://img.shields.io/crates/v/dbgbb?style=flat-square)](https://crates.io/crates/dbgbb)
 [![Crates.io](https://img.shields.io/crates/d/dbgbb?style=flat-square)](https://crates.io/crates/dbgbb)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/YShoji-HEP/dbgbb/blob/main/LICENSE.txt)
@@ -46,7 +47,7 @@ fn main() {
 }
 ```
 
-The debug data can be read in a Mathematica Notebook. See [`ArrayObject`](https://github.com/YShoji-HEP/ArrayObject) for details.
+The debug data can be visualized, for example, in a Mathematica Notebook. See [`ArrayObject`](https://github.com/YShoji-HEP/ArrayObject) for details.
 
 <img src=example.png width=50%>
 

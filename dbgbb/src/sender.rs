@@ -78,10 +78,10 @@ impl BufferedSender {
             loop {
                 if let Ok(ctl) = rx.recv_timeout(Duration::from_millis(timeout)) {
                     match ctl {
-                        SenderControl::Post((var_name, var_tag, obj)) => {
+                        SenderControl::Post((title, tag, obj)) => {
                             let data = ByteBuf::from(obj.pack());
                             ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
-                            ciborium::into_writer(&(var_name, var_tag, data), &mut buffer).unwrap();
+                            ciborium::into_writer(&(title, tag, data), &mut buffer).unwrap();
                         }
                         SenderControl::Shutdown => {
                             if buffer.position() > 0 {
@@ -118,10 +118,10 @@ impl BufferedSender {
             None => {
                 if !objs.is_empty() {
                     let mut buffer = Cursor::new(vec![]);
-                    for (var_name, var_tag, obj) in objs {
+                    for (title, tag, obj) in objs {
                         let data = ByteBuf::from(obj.pack());
                         ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
-                        ciborium::into_writer(&(var_name, var_tag, data), &mut buffer).unwrap();
+                        ciborium::into_writer(&(title, tag, data), &mut buffer).unwrap();
                     }
                     buffer.set_position(0);
                     let mut stream = TcpOrUnixStream::connect(&self.addr)?;

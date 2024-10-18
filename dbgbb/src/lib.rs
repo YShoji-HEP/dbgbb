@@ -36,13 +36,13 @@ macro_rules! dbgbb {
         use dbgbb::{Rename, Pack};
         let mut objs = vec![];
         $(
-            let var_name = match $x.get_name() {
+            let title = match $x.get_name() {
                 Some(name) => name,
                 None => stringify!($x).to_string(),
             };
-            let var_tag = format!("{}:{}:{}", file!(), line!(), column!());
+            let tag = format!("{}:{}:{}", file!(), line!(), column!());
             let obj: dbgbb::ArrayObject = $x.clone().try_into().unwrap();
-            objs.push((var_name, var_tag, obj));
+            objs.push((title, tag, obj));
         )*
         sender.post(objs).unwrap();
     }};
@@ -80,12 +80,12 @@ macro_rules! dbgbb_acc {
         use dbgbb::Rename;
         let mut map = dbgbb::DATA_ACC.lock().unwrap();
         $(
-            let var_name = match $x.get_name() {
+            let title = match $x.get_name() {
                 Some(name) => name,
                 None => stringify!($x).to_string(),
             };
-            let var_tag = format!("{}:{}:{}", file!(), line!(), column!());
-            let entry = map.entry(($label.to_string(), var_name, var_tag)).or_insert(vec![]);
+            let tag = format!("{}:{}:{}", file!(), line!(), column!());
+            let entry = map.entry(($label.to_string(), title, tag)).or_insert(vec![]);
             let obj: dbgbb::ArrayObject = $x.clone().try_into().unwrap();
             entry.push(obj);
         )*
@@ -124,20 +124,20 @@ macro_rules! dbgbb_acc {
 /// ```
 #[macro_export]
 macro_rules! dbgbb_read {
-    ($var_name:literal, $var_tag:literal, $revision:literal) => {{
+    ($title:literal, $tag:literal, $revision:literal) => {{
         let obj = dbgbb::read_bulletin(
-            $var_name.to_string(),
-            Some($var_tag.to_string()),
+            $title.to_string(),
+            Some($tag.to_string()),
             $revision as u64,
         );
         obj.try_into().unwrap()
     }};
-    ($var_name:literal, $var_tag:literal) => {{
-        let obj = dbgbb::read_bulletin($var_name.to_string(), Some($var_tag.to_string()), None);
+    ($title:literal, $tag:literal) => {{
+        let obj = dbgbb::read_bulletin($title.to_string(), Some($tag.to_string()), None);
         obj.try_into().unwrap()
     }};
-    ($var_name:literal) => {{
-        let obj = dbgbb::read_bulletin($var_name.to_string(), None, None);
+    ($title:literal) => {{
+        let obj = dbgbb::read_bulletin($title.to_string(), None, None);
         obj.try_into().unwrap()
     }};
 }

@@ -6,7 +6,7 @@ license = "Apache-2.0"
 description = "A framework for analyzing debugging data in a notebook"
 repository = "https://github.com/YShoji-HEP/dbgbb"
 readme = "README.md"
-keywords = ["data_structures", "binary", "object_storage", "debugging"]
+keywords = ["data_structures", "macro", "object_storage", "debugging"]
 categories = ["visualization", "encoding", "development-tools::debugging", "development-tools::testing"]
 
 [dependencies]
