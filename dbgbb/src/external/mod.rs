@@ -1,3 +1,6 @@
 
 #[cfg(feature = "ndarray")]
-mod ndarray_extension;
+mod ndarray;
+
+#[cfg(feature = "nalgebra")]
+mod nalgebra;

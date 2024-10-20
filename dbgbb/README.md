@@ -1,6 +1,6 @@
 dbgbb
 ===========================
-[![Sponsors](https://img.shields.io/badge/Offer-Coffee-red)](https://github.com/sponsors/YShoji-HEP)
+[![Sponsors](https://img.shields.io/badge/offer-Coffee-red?style=flat-square)](https://github.com/sponsors/YShoji-HEP)
 [![Crates.io](https://img.shields.io/crates/v/dbgbb?style=flat-square)](https://crates.io/crates/dbgbb)
 [![Crates.io](https://img.shields.io/crates/d/dbgbb?style=flat-square)](https://crates.io/crates/dbgbb)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/YShoji-HEP/dbgbb/blob/main/LICENSE.txt)
@@ -46,6 +46,7 @@ fn main() {
     dbgbb!(test);
 }
 ```
+See also `dbgbb_flatten!(...)` and `dbgbb_concat!(...)` for `Vec<Vec<...>>` type of arrays.
 
 At any point in the code, data may be accumulated prior to transmission. If the data is an array, the shape at each accumulation must be the same.
 ```rust

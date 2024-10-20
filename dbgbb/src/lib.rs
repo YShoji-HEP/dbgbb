@@ -125,11 +125,8 @@ macro_rules! dbgbb_acc {
 #[macro_export]
 macro_rules! dbgbb_read {
     ($title:literal, $tag:literal, $revision:literal) => {{
-        let obj = dbgbb::read_bulletin(
-            $title.to_string(),
-            Some($tag.to_string()),
-            $revision as u64,
-        );
+        let obj =
+            dbgbb::read_bulletin($title.to_string(), Some($tag.to_string()), $revision as u64);
         obj.try_into().unwrap()
     }};
     ($title:literal, $tag:literal) => {{
@@ -139,5 +136,192 @@ macro_rules! dbgbb_read {
     ($title:literal) => {{
         let obj = dbgbb::read_bulletin($title.to_string(), None, None);
         obj.try_into().unwrap()
+    }};
+}
+
+/// Send each element to the server.
+/// Usage:
+/// ```
+/// let a = vec![vec![1u32, 2], vec![3, 4]];
+/// dbgbb_flatten!(a, depth => 1);
+/// dbgbb_flatten!(a, depth => 2);
+/// ```
+#[macro_export]
+macro_rules! dbgbb_flatten {
+    ($x:expr, depth => 1) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for inner in $x.iter() {
+            let obj: dbgbb::ArrayObject = inner.clone().try_into().unwrap();
+            objs.push((title.clone(), tag.clone(), obj));
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 2) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for inner0 in $x.iter() {
+            for inner1 in inner0.iter() {
+                let obj: dbgbb::ArrayObject = inner1.clone().try_into().unwrap();
+                objs.push((title.clone(), tag.clone(), obj));
+            }
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 3) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for inner0 in $x.iter() {
+            for inner1 in inner0.iter() {
+                for inner2 in inner1.iter() {
+                    let obj: dbgbb::ArrayObject = inner2.clone().try_into().unwrap();
+                    objs.push((title.clone(), tag.clone(), obj));
+                }
+            }
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 4) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for inner0 in $x.iter() {
+            for inner1 in inner0.iter() {
+                for inner2 in inner1.iter() {
+                    for inner3 in inner2.iter() {
+                        let obj: dbgbb::ArrayObject = inner3.clone().try_into().unwrap();
+                        objs.push((title.clone(), tag.clone(), obj));
+                    }
+                }
+            }
+        }
+        sender.post(objs).unwrap();
+    }};
+}
+
+/// Create a single array and send it to the server. The lengths of the elements should be the same.
+/// Usage:
+/// ```
+/// let a = vec![vec![1u32, 2], vec![3, 4]];
+/// dbgbb_concat!(a, depth => 1);
+/// ```
+#[macro_export]
+macro_rules! dbgbb_concat {
+    ($x:expr, depth => 1) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for inner in $x.iter() {
+            let obj: dbgbb::ArrayObject = inner.clone().try_into().unwrap();
+            objs.push(obj);
+        }
+        let cat = objs.try_concat().unwrap();
+        sender.post(vec![(title, tag, cat)]).unwrap();
+    }};
+    ($x:expr, depth => 2) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs0 = vec![];
+        for inner0 in $x.iter() {
+            let mut objs1 = vec![];
+            for inner1 in inner0.iter() {
+                let obj: dbgbb::ArrayObject = inner1.clone().try_into().unwrap();
+                objs1.push(obj);
+            }
+            let cat = objs1.try_concat().unwrap();
+            objs0.push(cat);
+        }
+        let cat = objs0.try_concat().unwrap();
+        sender.post(vec![(title, tag, cat)]).unwrap();
+    }};
+    ($x:expr, depth => 3) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs0 = vec![];
+        for inner0 in $x.iter() {
+            let mut objs1 = vec![];
+            for inner1 in inner0.iter() {
+                let mut objs2 = vec![];
+                for inner2 in inner1.iter() {
+                    let obj: dbgbb::ArrayObject = inner2.clone().try_into().unwrap();
+                    objs2.push(obj);
+                }
+                let cat = objs2.try_concat().unwrap();
+                objs1.push(cat);
+            }
+            let cat = objs1.try_concat().unwrap();
+            objs0.push(cat);
+        }
+        let cat = objs0.try_concat().unwrap();
+        sender.post(vec![(title, tag, cat)]).unwrap();
+    }};
+    ($x:expr, depth => 4) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs0 = vec![];
+        for inner0 in $x.iter() {
+            let mut objs1 = vec![];
+            for inner1 in inner0.iter() {
+                let mut objs2 = vec![];
+                for inner2 in inner1.iter() {
+                    let mut objs3 = vec![];
+                    for inner3 in inner2.iter() {
+                        let obj: dbgbb::ArrayObject = inner3.clone().try_into().unwrap();
+                        objs3.push(obj);
+                    }
+                    let cat = objs3.try_concat().unwrap();
+                    objs2.push(cat);
+                }
+                let cat = objs2.try_concat().unwrap();
+                objs1.push(cat);
+            }
+            let cat = objs1.try_concat().unwrap();
+            objs0.push(cat);
+        }
+        let cat = objs0.try_concat().unwrap();
+        sender.post(vec![(title, tag, cat)]).unwrap();
     }};
 }
