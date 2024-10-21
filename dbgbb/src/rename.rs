@@ -1,3 +1,5 @@
+use num_complex::Complex;
+
 /// Rename the variable.
 pub trait Rename {
     /// Returns the name of the variable if set.
@@ -24,7 +26,23 @@ macro_rules! impl_rename {
     }
 }
 
-impl_rename!(i8, i16, i32, i64, i128, u8, u16, u32, u64, f32, f64, String, &str);
+impl_rename!(
+    i8,
+    i16,
+    i32,
+    i64,
+    i128,
+    u8,
+    u16,
+    u32,
+    u64,
+    f32,
+    f64,
+    Complex<f32>,
+    Complex<f64>,
+    String,
+    &str
+);
 
 impl<T: Clone> Rename for Vec<T> {}
 

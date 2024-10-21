@@ -23,11 +23,17 @@ pub static DATA_ACC: LazyLock<Mutex<HashMap<(String, String, String), Vec<ArrayO
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Send the debug data to the server.
+///
 /// Usage:
 /// ```
-/// dbgbb!(a, b, ...);
-/// dbgbb!(every => 3, a, b, ...);
-/// dbgbb!(oneshot => 5, a, b, ...);
+/// use dbgbb::dbgbb;
+/// for a in 0..3 {
+///     for b in 0..3 {
+///         dbgbb!(a, b);
+///         dbgbb!(every => 3, a, b);
+///         dbgbb!(oneshot => 5, a, b);
+///     }
+/// }
 /// ```
 #[macro_export]
 macro_rules! dbgbb {
@@ -65,11 +71,15 @@ macro_rules! dbgbb {
 }
 
 /// Accumulate and send the debug data to the server.
+///
 /// Usage:
 /// ```
-/// for _ in 0..10 {
-///     dbgbb_acc!(label => "i", a, b, ...);
-///     dbgbb_acc!(label => "j", every => 3, a, b, ...);
+/// use dbgbb::dbgbb_acc;
+/// for a in 0..3 {
+///     for b in 0..3 {
+///         dbgbb_acc!(label => "i", a, b);
+///         dbgbb_acc!(label => "j", every => 2, a, b);
+///     }
 /// }
 /// dbgbb_acc!("i" => post);
 /// dbgbb_acc!("j" => post);
@@ -116,17 +126,22 @@ macro_rules! dbgbb_acc {
 }
 
 /// Read data from the server.
+///
 /// Usage:
 /// ```
-/// let a: Vec<u32> = dbgbb_read!("a");
-/// let b: Vec<f64> = dbgbb_read!("b", "tag1");
-/// let c: i64 = dbgbb_read!("c", "tag2", 0);
+/// use dbgbb::dbgbb_read;
+/// let vv: Vec<i64> = dbgbb_read!("vv");
+/// let a: Vec<u64> = dbgbb_read!("a", "src/lib.rs:9:9");
+/// let b: i64 = dbgbb_read!("b", "src/lib.rs:8:9", 0);
 /// ```
 #[macro_export]
 macro_rules! dbgbb_read {
     ($title:literal, $tag:literal, $revision:literal) => {{
-        let obj =
-            dbgbb::read_bulletin($title.to_string(), Some($tag.to_string()), $revision as u64);
+        let obj = dbgbb::read_bulletin(
+            $title.to_string(),
+            Some($tag.to_string()),
+            Some($revision as u64),
+        );
         obj.try_into().unwrap()
     }};
     ($title:literal, $tag:literal) => {{
@@ -140,8 +155,10 @@ macro_rules! dbgbb_read {
 }
 
 /// Send each element to the server.
+///
 /// Usage:
 /// ```
+/// use dbgbb::dbgbb_flatten;
 /// let a = vec![vec![1u32, 2], vec![3, 4]];
 /// dbgbb_flatten!(a, depth => 1);
 /// dbgbb_flatten!(a, depth => 2);
@@ -157,7 +174,7 @@ macro_rules! dbgbb_flatten {
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs = vec![];
-        for inner in $x.iter() {
+        for inner in $x.clone().iter() {
             let obj: dbgbb::ArrayObject = inner.clone().try_into().unwrap();
             objs.push((title.clone(), tag.clone(), obj));
         }
@@ -172,7 +189,7 @@ macro_rules! dbgbb_flatten {
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             for inner1 in inner0.iter() {
                 let obj: dbgbb::ArrayObject = inner1.clone().try_into().unwrap();
                 objs.push((title.clone(), tag.clone(), obj));
@@ -189,7 +206,7 @@ macro_rules! dbgbb_flatten {
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             for inner1 in inner0.iter() {
                 for inner2 in inner1.iter() {
                     let obj: dbgbb::ArrayObject = inner2.clone().try_into().unwrap();
@@ -208,7 +225,7 @@ macro_rules! dbgbb_flatten {
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             for inner1 in inner0.iter() {
                 for inner2 in inner1.iter() {
                     for inner3 in inner2.iter() {
@@ -223,8 +240,10 @@ macro_rules! dbgbb_flatten {
 }
 
 /// Create a single array and send it to the server. The lengths of the elements should be the same.
+///
 /// Usage:
 /// ```
+/// use dbgbb::dbgbb_concat;
 /// let a = vec![vec![1u32, 2], vec![3, 4]];
 /// dbgbb_concat!(a, depth => 1);
 /// ```
@@ -232,14 +251,14 @@ macro_rules! dbgbb_flatten {
 macro_rules! dbgbb_concat {
     ($x:expr, depth => 1) => {{
         let sender = dbgbb::SENDER.lock().unwrap();
-        use dbgbb::{Pack, Rename};
+        use dbgbb::{Pack, Rename, TryConcat};
         let title = match $x.get_name() {
             Some(name) => name,
             None => stringify!($x).to_string(),
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs = vec![];
-        for inner in $x.iter() {
+        for inner in $x.clone().iter() {
             let obj: dbgbb::ArrayObject = inner.clone().try_into().unwrap();
             objs.push(obj);
         }
@@ -248,14 +267,14 @@ macro_rules! dbgbb_concat {
     }};
     ($x:expr, depth => 2) => {{
         let sender = dbgbb::SENDER.lock().unwrap();
-        use dbgbb::{Pack, Rename};
+        use dbgbb::{Pack, Rename, TryConcat};
         let title = match $x.get_name() {
             Some(name) => name,
             None => stringify!($x).to_string(),
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs0 = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             let mut objs1 = vec![];
             for inner1 in inner0.iter() {
                 let obj: dbgbb::ArrayObject = inner1.clone().try_into().unwrap();
@@ -269,14 +288,14 @@ macro_rules! dbgbb_concat {
     }};
     ($x:expr, depth => 3) => {{
         let sender = dbgbb::SENDER.lock().unwrap();
-        use dbgbb::{Pack, Rename};
+        use dbgbb::{Pack, Rename, TryConcat};
         let title = match $x.get_name() {
             Some(name) => name,
             None => stringify!($x).to_string(),
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs0 = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             let mut objs1 = vec![];
             for inner1 in inner0.iter() {
                 let mut objs2 = vec![];
@@ -295,14 +314,14 @@ macro_rules! dbgbb_concat {
     }};
     ($x:expr, depth => 4) => {{
         let sender = dbgbb::SENDER.lock().unwrap();
-        use dbgbb::{Pack, Rename};
+        use dbgbb::{Pack, Rename, TryConcat};
         let title = match $x.get_name() {
             Some(name) => name,
             None => stringify!($x).to_string(),
         };
         let tag = format!("{}:{}:{}", file!(), line!(), column!());
         let mut objs0 = vec![];
-        for inner0 in $x.iter() {
+        for inner0 in $x.clone().iter() {
             let mut objs1 = vec![];
             for inner1 in inner0.iter() {
                 let mut objs2 = vec![];

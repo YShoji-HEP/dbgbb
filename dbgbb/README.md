@@ -102,6 +102,7 @@ Crate Features
 |Feature|Description|
 |-|-|
 |`unix`|Use the UNIX socket instead of TCP. Only available for UNIX-like OS.|
+|`no_compression`|Disable compression. This improves performance when the data is float and is random.|
 |`ndarray_15`|Enable ndarray support. The compatible version is 0.15.x.|
 |`ndarray_16`|Enable ndarray support. The compatible version is 0.16.x.|
 |`nalgebra`|Enable nalgebra support. Confirmed to work with version 0.33.0.|

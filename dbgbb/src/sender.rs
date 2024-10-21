@@ -79,7 +79,10 @@ impl BufferedSender {
                 if let Ok(ctl) = rx.recv_timeout(Duration::from_millis(timeout)) {
                     match ctl {
                         SenderControl::Post((title, tag, obj)) => {
+                            #[cfg(not(feature = "no_compression"))]
                             let data = ByteBuf::from(obj.pack());
+                            #[cfg(feature = "no_compression")]
+                            let data = ByteBuf::from(obj.pack_as_it_is());
                             ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
                             ciborium::into_writer(&(title, tag, data), &mut buffer).unwrap();
                         }
@@ -119,7 +122,10 @@ impl BufferedSender {
                 if !objs.is_empty() {
                     let mut buffer = Cursor::new(vec![]);
                     for (title, tag, obj) in objs {
+                        #[cfg(not(feature = "no_compression"))]
                         let data = ByteBuf::from(obj.pack());
+                        #[cfg(feature = "no_compression")]
+                        let data = ByteBuf::from(obj.pack_as_it_is());
                         ciborium::into_writer(&Operation::Post, &mut buffer).unwrap();
                         ciborium::into_writer(&(title, tag, data), &mut buffer).unwrap();
                     }
