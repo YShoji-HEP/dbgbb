@@ -13,10 +13,8 @@ categories = ["visualization", "encoding", "development-tools::debugging", "deve
 array-object = "0.1.4"
 bulletin-board-common = "0.1.0"
 ciborium = "=0.2.2"
-serde = "1.0.209"
 serde_bytes = "0.11.15"
 num-complex = "0.4.6"
-varint-rs = "2.2.0"
 ndarray_15 = { package = "ndarray", version = "0.15.6", optional = true }
 ndarray_16 = { package = "ndarray", version = "0.16.1", optional = true }
 nalgebra = { version = "0.33.0", optional = true }
