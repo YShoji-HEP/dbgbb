@@ -7,7 +7,7 @@ use crate::{Operation, Response, SENDER};
 use array_object::{ArrayObject, Unpack};
 use serde_bytes::ByteBuf;
 
-/// Helper function for `dbgbb_read!(...)`.
+/// [Only for internal use] Helper function for `dbgbb_read!(...)`.
 pub fn read_bulletin(
     title: String,
     tag: Option<String>,

@@ -131,12 +131,13 @@ macro_rules! dbgbb_acc {
 /// ```
 /// use dbgbb::dbgbb_read;
 /// let vv: Vec<i64> = dbgbb_read!("vv");
+/// let vv2: Vec<i64> = dbgbb_read!("vv", rev => 0);
 /// let a: Vec<u64> = dbgbb_read!("a", "src/lib.rs:9:9");
-/// let b: i64 = dbgbb_read!("b", "src/lib.rs:8:9", 0);
+/// let b: i64 = dbgbb_read!("b", "src/lib.rs:8:9", rev => 0);
 /// ```
 #[macro_export]
 macro_rules! dbgbb_read {
-    ($title:literal, $tag:literal, $revision:literal) => {{
+    ($title:literal, $tag:literal, rev => $revision:literal) => {{
         let obj = dbgbb::read_bulletin(
             $title.to_string(),
             Some($tag.to_string()),
@@ -146,6 +147,10 @@ macro_rules! dbgbb_read {
     }};
     ($title:literal, $tag:literal) => {{
         let obj = dbgbb::read_bulletin($title.to_string(), Some($tag.to_string()), None);
+        obj.try_into().unwrap()
+    }};
+    ($title:literal, rev => $revision:literal) => {{
+        let obj = dbgbb::read_bulletin($title.to_string(), None, Some($revision as u64));
         obj.try_into().unwrap()
     }};
     ($title:literal) => {{
@@ -342,5 +347,90 @@ macro_rules! dbgbb_concat {
         }
         let cat = objs0.try_concat().unwrap();
         sender.post(vec![(title, tag, cat)]).unwrap();
+    }};
+}
+
+/// Send each element to the server adding the index to the tag.
+///
+/// Usage:
+/// ```
+/// use dbgbb::dbgbb_index;
+/// let a = vec![vec![1u32, 2], vec![3, 4]];
+/// dbgbb_index!(a, depth => 1);
+/// dbgbb_index!(a, depth => 2);
+/// ```
+#[macro_export]
+macro_rules! dbgbb_index {
+    ($x:expr, depth => 1) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for (i, inner) in $x.clone().iter().enumerate() {
+            let obj: dbgbb::ArrayObject = inner.clone().try_into().unwrap();
+            objs.push((title.clone(), format!("{tag}:[{i}]"), obj));
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 2) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for (i, inner0) in $x.clone().iter().enumerate() {
+            for (j, inner1) in inner0.iter().enumerate() {
+                let obj: dbgbb::ArrayObject = inner1.clone().try_into().unwrap();
+                objs.push((title.clone(), format!("{tag}:[{i},{j}]"), obj));
+            }
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 3) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for (i, inner0) in $x.clone().iter().enumerate() {
+            for (j, inner1) in inner0.iter().enumerate() {
+                for (k, inner2) in inner1.iter().enumerate() {
+                    let obj: dbgbb::ArrayObject = inner2.clone().try_into().unwrap();
+                    objs.push((title.clone(), format!("{tag}:[{i},{j},{k}]"), obj));
+                }
+            }
+        }
+        sender.post(objs).unwrap();
+    }};
+    ($x:expr, depth => 4) => {{
+        let sender = dbgbb::SENDER.lock().unwrap();
+        use dbgbb::{Pack, Rename};
+        let title = match $x.get_name() {
+            Some(name) => name,
+            None => stringify!($x).to_string(),
+        };
+        let tag = format!("{}:{}:{}", file!(), line!(), column!());
+        let mut objs = vec![];
+        for (i, inner0) in $x.clone().iter().enumerate() {
+            for (j, inner1) in inner0.iter().enumerate() {
+                for (k, inner2) in inner1.iter().enumerate() {
+                    for (l, inner3) in inner2.iter().enumerate() {
+                        let obj: dbgbb::ArrayObject = inner3.clone().try_into().unwrap();
+                        objs.push((title.clone(), format!("{tag}:[{i},{j},{k},{l}]"), obj));
+                    }
+                }
+            }
+        }
+        sender.post(objs).unwrap();
     }};
 }

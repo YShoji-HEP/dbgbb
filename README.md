@@ -16,6 +16,7 @@ Highlights
 * Optional buffered sender reduces TCP transactions and maintains the program runtime speed.
 * Various tools for data collection: accumuation, oneshot and frequency reduction.
 * Debug data can be read during program execution and persist after execution.
+* The server holds debugging data in memory and provides ultra-fast random access to the data.
 * Unsigned/signed integer, real float, complex float and string are supported. For array data, `Vec`, `ndarray` and `nalgebra` are currently supported.
 
 ```mermaid
@@ -28,6 +29,12 @@ BulletinBoard->>Notebook: Response
 Program->>BulletinBoard: Debugging data
 Program->>BulletinBoard: Debugging data
 ```
+
+Caution
+-------
+* The data is not encrypted. Please do not send any confidential data over the network.
+* This crate is under development and is subject to change in specification. (Compatibility across `BulletinBoard` and `dbgbb` is ensured for the most minor version numbers.)
+* The included tests will access the server and potentially erase existing data.
 
 Example
 -------
@@ -47,16 +54,14 @@ fn main() {
 }
 ```
 
-The debug data can be visualized, for example, in a Mathematica Notebook. See [`ArrayObject`](https://github.com/YShoji-HEP/ArrayObject) for details.
-
-<img src=example.png width=50%>
+The debug data can be visualized, in a Mathematica/Jupyter notebook. See [`ArrayObject`](https://github.com/YShoji-HEP/ArrayObject) for details.
 
 ToDo
 ----
-- [ ] Jupyter notebook support (Python, Julia).
+- [x] Jupyter notebook support (Python).
+- [x] Support for `Vec<Vec<T>>` and `Array1<Array1<T>>`.
 - [ ] Windows support. 
 - [ ] Support for other arrays.
-- [x] Support for `Vec<Vec<T>>` and `Array1<Array1<T>>`.
 
 Q&A
 --------------
@@ -68,6 +73,7 @@ For arrays with more than two dimensions, CSV files are clearly not an option. I
 
 #### Why not use a HDF5 file?
 It is sometimes useful to be able to read debugging data while the program is running. HDF5 easily collapses if the file is opened while it is being written. In addition, the syntax of `dbgbb` is much simpler than HDF5, which requires setting the database name, array shape, etc.
+Another advantage is that the `BulletinBoard` server keeps debugging data in memory, which is much faster to access.
 
 #### Why not use an integrated visualizer?
 When the plot is not satisfactory, the entire code must be rerun since all data is gone once the program terminates. This is often a pain in scientific computations. It is thus more sensible to separete the plotting code from the main code.

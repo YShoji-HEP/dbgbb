@@ -16,6 +16,7 @@ Highlights
 * Optional buffered sender reduces TCP transactions and maintains the program runtime speed.
 * Various tools for data collection: accumuation, oneshot and frequency reduction.
 * Debug data can be read during program execution and persist after execution.
+* The server holds debugging data in memory and provides ultra-fast random access to the data.
 * Unsigned/signed integer, real float, complex float and string are supported. For array data, `Vec`, `ndarray` and `nalgebra` are currently supported.
 
 ```mermaid
@@ -46,7 +47,7 @@ fn main() {
     dbgbb!(test);
 }
 ```
-See also `dbgbb_flatten!(...)` and `dbgbb_concat!(...)` for `Vec<Vec<...>>` type of arrays.
+See also `dbgbb_flatten!(...)`, `dbgbb_concat!(...)` and `dbgbb_index!(...)` for `Vec<Vec<...>>` type of arrays.
 
 At any point in the code, data may be accumulated prior to transmission. If the data is an array, the shape at each accumulation must be the same.
 ```rust
@@ -84,7 +85,7 @@ Data can also be read from the server.
 use dbgbb::dbgbb_read;
 
 fn main() {
-    let test: Vec<f64> = dbgbb_read!("name");
+    let test: Vec<f64> = dbgbb_read!("title");
     dbg!(test);
 }
 ```
@@ -117,6 +118,7 @@ For arrays with more than two dimensions, CSV files are clearly not an option. I
 
 #### Why not use a HDF5 file?
 It is sometimes useful to be able to read debugging data while the program is running. HDF5 easily collapses if the file is opened while it is being written. In addition, the syntax of `dbgbb` is much simpler than HDF5, which requires setting the database name, array shape, etc.
+Another advantage is that the `BulletinBoard` server keeps debugging data in memory, which is much faster to access.
 
 #### Why not use an integrated visualizer?
 When the plot is not satisfactory, the entire code must be rerun since all data is gone once the program terminates. This is often a pain in scientific computations. It is thus more sensible to separete the plotting code from the main code.
