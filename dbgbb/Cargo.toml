@@ -1,6 +1,6 @@
 [package]
 name = "dbgbb"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "A framework for analyzing debugging data in a notebook"
@@ -10,8 +10,8 @@ keywords = ["data_structures", "macro", "object_storage", "debugging"]
 categories = ["visualization", "encoding", "development-tools::debugging", "development-tools::testing"]
 
 [dependencies]
-array-object = "0.2.0"
-bulletin-board-common = "0.2.0"
+array-object = "0.2.1"
+bulletin-board-common = "0.3.1"
 
 ciborium = "=0.2.2"
 serde_bytes = "0.11.15"
@@ -24,7 +24,6 @@ nalgebra = { version = "0.33.2", optional = true }
 default = []
 unix = []
 no_compression = []
-ndarray = []
-ndarray_15 = ["ndarray", "dep:ndarray_15", "array-object/ndarray_15"]
-ndarray_16 = ["ndarray", "dep:ndarray_16", "array-object/ndarray_16"]
+ndarray_15 = ["dep:ndarray_15", "array-object/ndarray_15"]
+ndarray_16 = ["dep:ndarray_16", "array-object/ndarray_16"]
 nalgebra = ["dep:nalgebra", "array-object/nalgebra"]
