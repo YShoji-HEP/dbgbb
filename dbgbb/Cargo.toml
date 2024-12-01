@@ -1,16 +1,16 @@
 [package]
 name = "dbgbb"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 license = "Apache-2.0"
-description = "A framework for analyzing debugging data in a notebook"
+description = "A framework for analyzing debugging data in a Mathematica/Jupyter notebook"
 repository = "https://github.com/YShoji-HEP/dbgbb"
 readme = "README.md"
 keywords = ["data_structures", "macro", "object_storage", "debugging"]
 categories = ["visualization", "encoding", "development-tools::debugging", "development-tools::testing"]
 
 [dependencies]
-array-object = "0.2.1"
+array-object = "0.2.2"
 bulletin-board-common = "0.3.1"
 
 ciborium = "=0.2.2"

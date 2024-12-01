@@ -27,15 +27,17 @@ macro_rules! impl_rename {
 }
 
 impl_rename!(
+    u8,
+    u16,
+    u32,
+    u64,
+    usize,
     i8,
     i16,
     i32,
     i64,
     i128,
-    u8,
-    u16,
-    u32,
-    u64,
+    isize,
     f32,
     f64,
     Complex<f32>,

@@ -5,20 +5,28 @@ mod reader;
 mod rename;
 mod sender;
 
+#[doc(hidden)]
 pub use array_object::{ArrayObject, Pack, TryConcat};
+
+#[doc(hidden)]
 pub use bulletin_board_common::*;
+
+#[doc(hidden)]
 pub use reader::read_bulletin;
 pub use rename::Rename;
 pub use sender::Buffer;
+
+#[doc(hidden)]
 pub use sender::SENDER;
 
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
-/// Used to count the numbers.
+#[doc(hidden)]
 pub static COUNTER: LazyLock<Mutex<HashMap<String, u64>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
-/// Used to accumulate data before sending.
+
+#[doc(hidden)]
 pub static DATA_ACC: LazyLock<Mutex<HashMap<(String, String, String), Vec<ArrayObject>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 

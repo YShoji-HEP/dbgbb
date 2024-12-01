@@ -12,6 +12,7 @@ macro_rules! post_read {
 
 #[test]
 fn scalar() {
+    post_read!(1usize, "1usize", usize);
     post_read!(1u64, "1u64", u64);
     post_read!(-1i64, "-1i64", i64);
     post_read!(1f64, "1f64", f64);
