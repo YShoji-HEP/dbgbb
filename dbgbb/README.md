@@ -127,3 +127,6 @@ Another advantage is that the `BulletinBoard` server keeps debugging data in mem
 When the plot is not satisfactory, the entire code must be rerun since all data is gone once the program terminates. This is often a pain in scientific computations. It is thus more sensible to separete the plotting code from the main code.
 It is also important to keep the initial erroneus data because otherwise it becomes difficult to quantitatively check improvements. `dbgbb` keeps all versions, which can be read anytime.
 In addition, `dbgbb` makes it easier to compare with the results obtained in a different language such as Mathematica.
+
+#### What is the difference between `dbgbb` and `bulletin-board-client`?
+BulletinBoard's client library is intended to fully manipulate the server and contains more dependencies. On the other hand, `dbgbb` has minimal dependencies and includes various tools for debugging.

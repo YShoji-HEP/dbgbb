@@ -1,6 +1,6 @@
 [package]
 name = "dbgbb"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 license = "Apache-2.0"
 description = "A framework for analyzing debugging data in a Mathematica/Jupyter notebook"
@@ -11,7 +11,7 @@ categories = ["visualization", "encoding", "development-tools::debugging", "deve
 
 [dependencies]
 array-object = "0.2.2"
-bulletin-board-common = "0.3.1"
+bulletin-board-common = "0.3.2"
 
 ciborium = "=0.2.2"
 serde_bytes = "0.11.15"

@@ -1,5 +1,6 @@
 //! # dbgbb!
 //!
+//! A framework for analyzing debugging data in a Mathematica/Jupyter notebook.
 mod external;
 mod reader;
 mod rename;

@@ -48,6 +48,8 @@ impl_rename!(
 
 impl<T: Clone> Rename for Vec<T> {}
 
+impl<T: Clone, const N: usize> Rename for [T; N] {}
+
 pub struct Renamed<T> {
     name: String,
     data: T,
