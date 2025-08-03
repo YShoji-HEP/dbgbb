@@ -56,3 +56,11 @@ fn concat() {
     assert_eq!(v, vec![1, 2, 3, 4]);
     assert_eq!(shape, vec![2, 2]);
 }
+
+#[test]
+fn buffer() {
+    let _buf = dbgbb::Buffer::on();
+    for i in 0..100 {
+        dbgbb!(vec![1f64; 100].rename(&i.to_string()));
+    }
+}

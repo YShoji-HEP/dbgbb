@@ -91,6 +91,7 @@ impl BufferedSender {
                                 let mut stream = TcpOrUnixStream::connect(&addr).unwrap();
                                 buffer.set_position(0);
                                 io::copy(&mut buffer, &mut stream).unwrap();
+                                stream.shutdown(std::net::Shutdown::Both).unwrap();
                             }
                             break;
                         }
@@ -102,6 +103,7 @@ impl BufferedSender {
                     let mut stream = TcpOrUnixStream::connect(&addr).unwrap();
                     buffer.set_position(0);
                     io::copy(&mut buffer, &mut stream).unwrap();
+                    stream.shutdown(std::net::Shutdown::Both).unwrap();
                     buffer = Cursor::new(vec![]);
                 }
             }
@@ -132,6 +134,7 @@ impl BufferedSender {
                     buffer.set_position(0);
                     let mut stream = TcpOrUnixStream::connect(&self.addr)?;
                     io::copy(&mut buffer, &mut stream)?;
+                    stream.shutdown(std::net::Shutdown::Both).unwrap();
                 }
             }
         }

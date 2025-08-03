@@ -8,11 +8,7 @@ use array_object::{ArrayObject, Unpack};
 use serde_bytes::ByteBuf;
 
 /// [Only for internal use] Helper function for `dbgbb_read!(...)`.
-pub fn read_bulletin(
-    title: String,
-    tag: Option<String>,
-    revision: Option<u64>,
-) -> ArrayObject {
+pub fn read_bulletin(title: String, tag: Option<String>, revision: Option<u64>) -> ArrayObject {
     let revisions = match revision {
         Some(rev) => vec![rev],
         None => vec![],
@@ -29,12 +25,15 @@ pub fn read_bulletin(
     match res {
         Response::Ok => {
             let val: ByteBuf = ciborium::from_reader(&mut stream).unwrap();
+            stream.shutdown(std::net::Shutdown::Both).unwrap();
             ArrayObject::unpack(val.to_vec()).unwrap()
         }
         Response::NotFound => {
+            stream.shutdown(std::net::Shutdown::Both).unwrap();
             panic!("Not found.");
         }
         Response::NotUnique(list) => {
+            stream.shutdown(std::net::Shutdown::Both).unwrap();
             panic!("Multiple entries found: {:?}.", list);
         }
     }
