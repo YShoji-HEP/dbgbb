@@ -1,11 +1,14 @@
-#[cfg(any(feature = "ndarray_15", feature = "ndarray_16"))]
+#[cfg(any(feature = "ndarray_15", feature = "ndarray_16", feature = "ndarray_17"))]
 mod test_ndarray {
-    use dbgbb::*;
-    use ndarray::Array2;
     #[cfg(feature = "ndarray_15")]
     use ndarray_15 as ndarray;
     #[cfg(feature = "ndarray_16")]
     use ndarray_16 as ndarray;
+    #[cfg(feature = "ndarray_17")]
+    use ndarray_17 as ndarray;
+
+    use dbgbb::*;
+    use ndarray::Array2;
     #[test]
     fn ndarray_integer() {
         let v: Vec<_> = (-128..128).map(|i| i as i32).collect();
@@ -16,8 +19,13 @@ mod test_ndarray {
     }
 }
 
-#[cfg(feature = "nalgebra")]
+#[cfg(any(feature = "nalgebra_33", feature = "nalgebra_34"))]
 mod test_nalgebra {
+    #[cfg(feature = "nalgebra_33")]
+    use nalgebra_33 as nalgebra;
+    #[cfg(feature = "nalgebra_34")]
+    use nalgebra_34 as nalgebra;
+
     use dbgbb::*;
     use nalgebra::DMatrix;
     #[test]

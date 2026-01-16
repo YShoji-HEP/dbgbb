@@ -129,4 +129,6 @@ fn main() {
 | `no_compression`  | Disables compression for improved performance with random floating-point data.                |
 | `ndarray_15`      | Enables support for `ndarray` version 0.15.x.                                                |
 | `ndarray_16`      | Enables support for `ndarray` version 0.16.x.                                                |
-| `nalgebra`        | Enables support for `nalgebra` (tested with version 0.33.0).                                 |
+| `ndarray_17`      | Enables support for `ndarray` version 0.17.x.                                                |
+| `nalgebra_33`        | Enables support for `nalgebra` version 0.33.x.                                 |
+| `nalgebra_34`        | Enables support for `nalgebra` version 0.34.x.                                 |

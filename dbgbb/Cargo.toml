@@ -10,15 +10,17 @@ keywords = ["data_structures", "macro", "object_storage", "debugging"]
 categories = ["visualization", "encoding", "development-tools::debugging", "development-tools::testing"]
 
 [dependencies]
-array-object = "0.2.3"
+array-object = "0.3.0"
 bulletin-board-common = "0.3.2"
 
 ciborium = "=0.2.2"
-serde_bytes = "0.11.17"
+serde_bytes = "0.11.19"
 num-complex = "0.4.6"
 ndarray_15 = { package = "ndarray", version = "0.15.6", optional = true }
 ndarray_16 = { package = "ndarray", version = "0.16.1", optional = true }
-nalgebra = { version = "0.34.0", optional = true }
+ndarray_17 = { package = "ndarray", version = "0.17.2", optional = true }
+nalgebra_33 = { package = "nalgebra", version = "0.33.2", optional = true }
+nalgebra_34 = { package = "nalgebra", version = "0.34.1", optional = true }
 
 [features]
 default = []
@@ -26,4 +28,6 @@ unix = []
 no_compression = []
 ndarray_15 = ["dep:ndarray_15", "array-object/ndarray_15"]
 ndarray_16 = ["dep:ndarray_16", "array-object/ndarray_16"]
-nalgebra = ["dep:nalgebra", "array-object/nalgebra"]
+ndarray_17 = ["dep:ndarray_17", "array-object/ndarray_17"]
+nalgebra_33 = ["dep:nalgebra_33", "array-object/nalgebra_33"]
+nalgebra_34 = ["dep:nalgebra_34", "array-object/nalgebra_34"]
